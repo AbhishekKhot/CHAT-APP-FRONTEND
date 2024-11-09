@@ -1,11 +1,44 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
+import SignUp from "./components/signup";
+import SignIn from "./components/signin";
+import VerifyOTP from "./components/verify-otp";
+import Chats from "./components/chats";
+import NotFound from "./components/not-found";
 
-function App() {
+const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-blue-500 text-white">
-      <h1 className="text-4xl font-bold">Hello, Tailwind CSS!</h1>
-    </div>
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={isAuthenticated ? <Navigate to="/chat" /> : <SignUp />}
+        />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
+        <Route
+          path="/chat"
+          element={isAuthenticated ? <Chats /> : <Navigate to="/signin" />}
+        />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
