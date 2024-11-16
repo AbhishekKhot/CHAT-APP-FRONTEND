@@ -1,13 +1,19 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { countryCodes } from "../utils/constants";
 
 const SignIn: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [countryCode, setCountryCode] = useState<string>("+91");
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhoneNumber(e.target.value);
+  };
+
+  const handleCountryCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCountryCode(e.target.value);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -18,6 +24,7 @@ const SignIn: React.FC = () => {
       return;
     }
 
+    console.log(`Country Code: ${countryCode}, Phone Number: ${phoneNumber}`);
     navigate("/verify-otp");
   };
 
@@ -29,7 +36,18 @@ const SignIn: React.FC = () => {
         </h2>
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
+          <div className="flex items-center">
+            <select
+              value={countryCode}
+              onChange={handleCountryCodeChange}
+              className="mr-2 border rounded-lg text-lg w-[120px] h-[42px] p-1.5" // {{ edit_5 }}
+            >
+              {countryCodes.map((country) => (
+                <option key={country.code} value={country.code}>
+                  {country.name} ({country.code})
+                </option>
+              ))}
+            </select>
             <input
               type="text"
               name="phoneNumber"

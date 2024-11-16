@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { countryCodes } from "../utils/constants";
 
 interface SignUpForm {
   firstName: string;
@@ -14,9 +15,14 @@ const SignUp: React.FC = () => {
     phoneNumber: "",
   });
 
+  const [countryCode, setCountryCode] = useState<string>("+91");
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState<boolean>(false);
   const navigate = useNavigate();
+
+  const handleCountryCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCountryCode(e.target.value);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -45,6 +51,9 @@ const SignUp: React.FC = () => {
       setError("Please fill required fields");
       return;
     }
+
+    const fullPhoneNumber = countryCode + formData.phoneNumber;
+    console.log(fullPhoneNumber);
 
     navigate("/verify-otp");
   };
@@ -81,7 +90,18 @@ const SignUp: React.FC = () => {
               }`}
             />
           </div>
-          <div>
+          <div className="flex items-center">
+            <select
+              value={countryCode}
+              onChange={handleCountryCodeChange}
+              className="mr-2 border rounded-lg text-lg w-[120px] h-[42px] p-1.5"
+            >
+              {countryCodes.map((country) => (
+                <option key={country.code} value={country.code}>
+                  {country.name} ({country.code})
+                </option>
+              ))}
+            </select>
             <input
               type="tel"
               name="phoneNumber"
