@@ -55,7 +55,7 @@ const SignUp: React.FC = () => {
     const fullPhoneNumber = countryCode + formData.phoneNumber;
     console.log(fullPhoneNumber);
 
-    navigate("/verify-otp");
+    navigate("/verify-otp", { state: { phoneNumber: `${fullPhoneNumber}` } });
   };
 
   return (
