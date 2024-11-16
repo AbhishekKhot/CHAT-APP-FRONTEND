@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import socketService from "../services/socket-service";
 
-const VerifyOTP: React.FC = () => {
+const VerifyOTP: React.FC<{ phoneNumber: string }> = ({ phoneNumber }) => {
   const [otp, setOtp] = useState<string>("");
   const [timer, setTimer] = useState<number>(30);
   const [canResendOtp, setCanResendOtp] = useState<boolean>(false);
@@ -37,6 +38,7 @@ const VerifyOTP: React.FC = () => {
 
     if (otp === "123456") {
       alert("OTP verified successfully!");
+      socketService.connect(phoneNumber);
     } else {
       setError("Invalid OTP.");
     }
