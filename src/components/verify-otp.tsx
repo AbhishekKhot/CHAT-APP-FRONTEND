@@ -1,54 +1,43 @@
-import React, { useState, useEffect } from "react";
-import socketService from "../services/socket-service";
+import React, { useState } from "react";
+import { useNavigate, Navigate } from "react-router-dom";
+import { useUser } from "../components/user-context";
+import { toast } from "react-toastify";
+import axios from "axios";
 
-const VerifyOTP: React.FC<{ phoneNumber: string }> = ({ phoneNumber }) => {
-  const [otp, setOtp] = useState<string>("");
-  const [timer, setTimer] = useState<number>(30);
-  const [canResendOtp, setCanResendOtp] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+const API_BASE_URL = process.env.API_BASE_URL || "http://0.0.0.0:9000/chat-app";
 
-  useEffect(() => {
-    if (timer === 0) {
-      setCanResendOtp(true);
-      return;
-    }
+const VerifyOTP: React.FC = () => {
+  const { phoneNumber, countryCode } = useUser();
+  const navigate = useNavigate();
+  const [otp, setOtp] = useState("");
 
-    const interval = setInterval(() => {
-      setTimer((prevTimer) => prevTimer - 1);
-    }, 1000);
+  if (!phoneNumber || !countryCode) {
+    return <Navigate to="/signup" replace />;
+  }
 
-    return () => clearInterval(interval);
-  }, [timer]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setOtp(e.target.value);
-  };
-
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (otp === "") {
-      setError("OTP cannot be empty.");
-      return;
-    }
-    if (otp.length !== 6 || isNaN(Number(otp))) {
-      setError("OTP must be exactly 6 digits.");
+    if (!otp || otp.length !== 6) {
+      toast.error("Please enter a valid OTP");
       return;
     }
 
-    if (otp === "123456") {
-      alert("OTP verified successfully!");
-      socketService.connect(phoneNumber);
-    } else {
-      setError("Invalid OTP.");
-    }
-  };
+    try {
+      const response = await axios.post(`${API_BASE_URL}/verify-otp`, {
+        phone_number: phoneNumber,
+        country_code: countryCode,
+        otp: otp,
+      });
 
-  const handleResendOtp = () => {
-    if (canResendOtp) {
-      setTimer(60);
-      setCanResendOtp(false);
-      alert("OTP has been resent.");
+      if (response.status === 200) {
+        toast.success("Phone number verified successfully!");
+        navigate("/chat");
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Invalid OTP. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
@@ -58,40 +47,37 @@ const VerifyOTP: React.FC<{ phoneNumber: string }> = ({ phoneNumber }) => {
         <h2 className="text-2xl font-bold text-center text-gray-700">
           Verify OTP
         </h2>
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        <form className="space-y-4" onSubmit={handleVerifyOtp}>
+        <p className="text-center text-gray-600">
+          Enter the OTP sent to {phoneNumber}
+        </p>
+        <form onSubmit={handleVerifyOTP} className="space-y-4">
           <div>
             <input
               type="text"
-              name="otp"
-              placeholder="Enter OTP"
-              value={otp}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               maxLength={6}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+              placeholder="Enter 6-digit OTP"
+              className="w-full px-4 py-2 text-center text-lg border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div>
-            <button
-              type="submit"
-              className="w-full px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
-            >
-              Verify
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="w-full px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+          >
+            Verify OTP
+          </button>
         </form>
-        <p className="text-center text-gray-600">
-          {canResendOtp ? (
-            <button
-              onClick={handleResendOtp}
-              className="text-blue-500 hover:text-blue-700"
-            >
-              Resend OTP
-            </button>
-          ) : (
-            <span>Resend OTP in {timer} seconds</span>
-          )}
-        </p>
+        <div className="text-center">
+          <button
+            onClick={() => {
+              /* Add resend OTP logic here */
+            }}
+            className="text-blue-500 hover:text-blue-600"
+          >
+            Resend OTP
+          </button>
+        </div>
       </div>
     </div>
   );

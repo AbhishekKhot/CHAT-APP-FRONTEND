@@ -13,10 +13,12 @@ class SocketService {
     return SocketService.instance;
   }
 
-  public connect(mobileNumber: string) {
+  public connect(phoneNumber: string, countryCode: string, options?: any) {
     if (!this.socket) {
-      this.socket = io(process.env.SOCKET_SERVER_URL, {
-        query: { mobileNumber },
+      this.socket = io("http://localhost:9000", {
+        path: "/chatsocket",
+        query: { phoneNumber, countryCode },
+        ...options,
       });
 
       this.socket.on("connect", () => {
@@ -32,10 +34,8 @@ class SocketService {
   }
 
   public disconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-    }
+    this.socket?.disconnect();
+    this.socket = null;
   }
 
   public getSocket() {

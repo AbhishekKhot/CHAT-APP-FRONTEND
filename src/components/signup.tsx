@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { countryCodes } from "../utils/constants";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useUser } from "../components/user-context";
+import axios from "axios";
+
+const API_BASE_URL = process.env.API_BASE_URL || "http://0.0.0.0:9000/chat-app";
 
 interface SignUpForm {
   firstName: string;
@@ -15,17 +21,16 @@ const SignUp: React.FC = () => {
     phoneNumber: "",
   });
 
-  const [countryCode, setCountryCode] = useState<string>("+91");
-  const [error, setError] = useState<string | null>(null);
+  const [userCountryCode, setUserCountryCode] = useState<string>("+91");
   const [touched, setTouched] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { setPhoneNumber, setCountryCode } = useUser();
 
   const handleCountryCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCountryCode(e.target.value);
+    setUserCountryCode(e.target.value);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setError(null);
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -38,7 +43,7 @@ const SignUp: React.FC = () => {
     return phonePattern.test(phoneNumber);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched(true);
 
@@ -48,23 +53,56 @@ const SignUp: React.FC = () => {
       !formData.phoneNumber ||
       !validatePhoneNumber(formData.phoneNumber)
     ) {
-      setError("Please fill required fields");
+      toast.error("Please fill all required fields correctly");
       return;
     }
 
-    const fullPhoneNumber = countryCode + formData.phoneNumber;
-    console.log(fullPhoneNumber);
-
-    navigate("/verify-otp", { state: { phoneNumber: `${fullPhoneNumber}` } });
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/signup`,
+        {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          phone_number: formData.phoneNumber,
+          country_code: userCountryCode,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.status === 200) {
+        setPhoneNumber(formData.phoneNumber);
+        setCountryCode(userCountryCode);
+        toast.success("Signup successful!");
+        navigate("/verify-otp");
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Something went wrong during signup";
+      toast.error(errorMessage);
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold text-center text-gray-700">
           Sign Up
         </h2>
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <input
@@ -92,7 +130,7 @@ const SignUp: React.FC = () => {
           </div>
           <div className="flex items-center">
             <select
-              value={countryCode}
+              value={userCountryCode}
               onChange={handleCountryCodeChange}
               className="mr-2 border rounded-lg text-lg w-[120px] h-[42px] p-1.5"
             >
