@@ -16,7 +16,8 @@ class SocketService {
   public connect(phoneNumber: string, countryCode: string, options?: any) {
     if (!this.socket) {
       this.socket = io("http://localhost:9000", {
-        path: "/chatsocket",
+        transports: ["websocket"],
+        path: "chat-sockets",
         query: { phoneNumber, countryCode },
         ...options,
       });

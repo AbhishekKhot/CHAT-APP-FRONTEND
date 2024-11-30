@@ -62,7 +62,7 @@ const MessageInterface = () => {
       if (searchQuery.length >= 2) {
         try {
           const response = await axios.get(
-            `${API_BASE_URL}/users?phone_number=${searchQuery.trim()}`,
+            `${API_BASE_URL}/users?phone_number=${searchQuery.trim()}&current_user_phone_number=${phoneNumber}`,
             {
               withCredentials: true,
               headers: {
@@ -82,7 +82,7 @@ const MessageInterface = () => {
 
     const debounceTimeout = setTimeout(searchUsers, 500);
     return () => clearTimeout(debounceTimeout);
-  }, [searchQuery]);
+  }, [searchQuery, phoneNumber]);
 
   const handleSendMessage = () => {
     if (!selectedUser || !inputValue.trim()) return;
@@ -97,13 +97,8 @@ const MessageInterface = () => {
       receiver: selectedUser,
       timestamp: new Date().toISOString(),
     };
-
-    const socket = socketService.getSocket();
-    if (socket) {
-      socket.emit("PeerToPeerMessage", messageData);
-      setMessages((prev) => [...prev, messageData]);
-      setInputValue("");
-    }
+    setMessages((prev) => [...prev, messageData]);
+    setInputValue("");
   };
 
   const renderUserItem = (user: User, isSelected: boolean) => (

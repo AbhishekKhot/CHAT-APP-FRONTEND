@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useUser } from "../components/user-context";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -10,10 +10,6 @@ const VerifyOTP: React.FC = () => {
   const { phoneNumber, countryCode } = useUser();
   const navigate = useNavigate();
   const [otp, setOtp] = useState("");
-
-  if (!phoneNumber || !countryCode) {
-    return <Navigate to="/signup" replace />;
-  }
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
