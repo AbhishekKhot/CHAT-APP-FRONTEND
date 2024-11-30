@@ -28,7 +28,7 @@ const VerifyOTP: React.FC = () => {
 
       if (response.status === 200) {
         toast.success("Phone number verified successfully!");
-        navigate("/chat");
+        navigate("/");
       }
     } catch (error: any) {
       const errorMessage =
